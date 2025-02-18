@@ -581,8 +581,8 @@ class IncipientFaultNShotMixup_taskInitial:
                     rms_list=[]
                     for ssubdir in sssssubtype_path:
                         docum_path=os.listdir(os.path.join(data_dir, sub_dir,ssubtype_path,ssssubtype_path,ssubdir))
-                        image_path=docum_path[:6]
-                        excel_path=docum_path[6:]
+                        image_path=[f for f in docum_path if f.lower().endswith('.png')]
+                        excel_path=[f for f in docum_path if f.lower().endswith('.xlsx')]
                         for k in range(0, len(image_path)):
                             img_load = os.path.join(data_dir, sub_dir,ssubtype_path,ssssubtype_path,ssubdir,image_path[k])
                             img= Image.open(img_load)

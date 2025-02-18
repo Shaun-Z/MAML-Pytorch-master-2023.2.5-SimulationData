@@ -196,7 +196,7 @@ if __name__ == '__main__':
     # argparser.add_argument('--epoch', type=int, help='epoch number', default=40000)
     # argparser.add_argument('--n_way', type=int, help='n way', default=5)
     # argparser.add_argument('--task_num', type=int, help='meta batch size, namely task num', default=32)
-    argparser.add_argument('--epoch', type=int, help='epoch number', default=1000) #我设置的是1000
+    argparser.add_argument('--epoch', type=int, help='epoch number', default=100) #我设置的是1000
     argparser.add_argument('--n_way', type=int, help='n way', default=3) #5
     argparser.add_argument('--k_spt', type=int, help='k shot for support set', default=3)
     argparser.add_argument('--k_spt_test', type=int, help='k shot for support set', default=4)
