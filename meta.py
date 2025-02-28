@@ -334,7 +334,7 @@ class Meta(nn.Module):
             print('calculation time', end_time-start_time)
             values = [val.values for val in shap_values]
             data = denorm_func(x_spt_nhwc.cpu().numpy()) / 255.0
-            output_names = ['Normal', 'Disturbance', 'IF']
+            output_names = shap_values.output_names
 
             plt.rcParams['font.size'] = 16
             shap.image_plot(    shap_values = values,
