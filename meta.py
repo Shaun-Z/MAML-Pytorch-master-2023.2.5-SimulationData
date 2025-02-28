@@ -8,6 +8,8 @@ import  numpy as np
 import os
 import shap
 import matplotlib.pyplot as plt
+import time
+import captum
 
 # from    learner import Learner
 from    learner_atten import Learner
@@ -297,50 +299,57 @@ class Meta(nn.Module):
                 corrects[k + 1] = corrects[k + 1] + correct
 
                             # # # # # # # # # SHAP 计算部分的代码 # # # # # # # # # # # # 
-            # # 创建可解释分析算法
+            # 创建可解释分析算法
             shap_net = deepcopy(net)
             def shap_predict(image):
                 # return F.softmax(shap_net(torch.tensor(image, device='cuda:0'), self.fast_weights, bn_training=True), dim=1)
                 image_nchw = np.moveaxis(image, 3, 1) # (12, 256, 256, 3) --> (12, 3, 256, 256)
                 return shap_net(torch.tensor(image_nchw, device='cuda:0'), self.fast_weights, bn_training=True)
+            
             # # 定义 mask，遮盖输入图像上的局部区域
             x_spt_nhwc = x_spt.permute(0, 2, 3, 1)
-            # print('x_spt_nhwc',x_spt_nhwc.shape)# (12,3,256,256)
-            masker_blur = shap.maskers.Image("blur(50, 50)", x_spt_nhwc[0].shape)
-            explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'cable2'])
-            shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5, outputs=shap.Explanation.argsort.flip[:3])
-            #shap_values = explainer(x_spt, max_evals=1000, batch_size=50, outputs=[0,1,2])
+            masker_blur = shap.maskers.Image("blur(128, 128)", x_spt_nhwc[0].shape)
+            print(x_spt_nhwc.shape)
+            
+            """ HiSHAP """
+            # explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'IF'])
+            # start_time = time.time()
+            # shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5, outputs=shap.Explanation.argsort.flip[:3])
+            # end_time = time.time()
+            # print('calculation time', end_time-start_time)
+            # print(explainer)
+            # shap_values.data = denorm_func(shap_values.data.cpu().numpy())/255.0 # (12, 256, 256, 3)
+            # shap_values.values = [val for val in np.transpose(shap_values.values, (4,0,1,2,3))] # shap值热力图
+            # values = shap_values.values
+            # data = shap_values.data
+            # output_names = shap_values.output_names
 
-            # plt.figure()
-            # plt.imshow(denorm_func(x_spt)[0].cpu().numpy().transpose(1,2,0)/255.0)
-            # plt.savefig('x_spt.png')
+            # print(values[0].shape, data.shape, output_names)
 
-            shap_values.data = denorm_func(shap_values.data.cpu().numpy())/255.0 # (12, 256, 256, 3)
-            # print('shap_values.data.shape',shap_values.data.shape)
-            # shap_values.data = np.moveaxis(shap_values.data.cpu().numpy(),1,-1)/255.0
-            # print(np.array(shap_values.values).shape) #(12, 3, 256, 256, 3)
-            shap_values.values = [val for val in np.transpose(shap_values.values, (4,0,1,2,3))] # shap值热力图
-            # print('shap_values.values.shape',np.array(shap_values.values).shape) #(3, 12, 3, 256, 256)
+            """ SHAP """
+            explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'IF'], algorithm="permutation")
+            start_time = time.time()
+            shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5)
+            end_time = time.time()
+            print('calculation time', end_time-start_time)
+            values = [val.values for val in shap_values]
+            data = denorm_func(x_spt_nhwc.cpu().numpy()) / 255.0
+            output_names = ['Normal', 'Disturbance', 'IF']
 
-            values = shap_values.values
-
-            # print('SHAP values shape', shap_values.data.shape, np.array(shap_values.values).shape)
-            # print('shap_values',shap_values.data.max(), shap_values.data.min())
-
-            # plt.figure(figsize=(12, 12))
-            shap.image_plot(    shap_values=shap_values.values,
-                                pixel_values=shap_values.data,
-                                labels=shap_values.output_names,
-                                hspace='auto',
-                                show=False)
+            plt.rcParams['font.size'] = 16
+            shap.image_plot(    shap_values = values,
+                                pixel_values = data,
+                                labels = output_names,
+                                hspace = 'auto',
+                                show = False)
             
 
             print("output shap fig")
-            plt.savefig('shap'+str(num)+str(k)+'.png')
+            plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
             plt.close()
             self.values = torch.tensor(np.array(values), device='cuda:0') # (3, 12, 256, 256, 3)
             
-            # print(f"Shapley values shape: {np.array(values).shape}")
+            print(f"Shapley values shape: {np.array(values).shape}")
                             # # # # # # # # # SHAP 计算部分的代码 # # # # # # # # # # # # 
 
         # # TODO zyg

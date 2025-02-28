@@ -9,6 +9,7 @@ import  argparse
 import matplotlib.pyplot as plt
 from    meta import Meta
 import wandb
+import time
 # wandb.init(project="MAMLIncipientFaultDetection-Results", entity="shilixian")
 
 current_file_path = os.path.dirname(os.path.abspath(__file__))
@@ -123,7 +124,7 @@ def main(args):
         if step % 50 == 0:  # 每50次输出一次训练准确率
             print('step:', step, '\ttraining acc:', accs)
 
-        # if step % 100 == 0:   # 每100次测试一次
+        # if step % 200 == 0 or step == args.epoch-1:   # 每200次测试一次
         if step == args.epoch-1:    # 最后一次测试
             accs = []
             accs_last=[]
@@ -132,6 +133,7 @@ def main(args):
             macro_recalls=[]
 
             # ccc=1000//args.task_num
+            num = 0
             for _ in range(100//args.task_num):     # 100//4=25 25 次 fine-tunning
 
                 # test
@@ -144,21 +146,20 @@ def main(args):
                 #                              torch.from_numpy(x_qry), torch.from_numpy(y_qry)
 
                 # split to single task each time
-                num = 0
+                
                 for x_spt_one, y_spt_one, x_qry_one, y_qry_one in zip(x_spt, y_spt, x_qry, y_qry):  #  print(x_spt_one.shape)-->torch.Size([12, 3, 256, 256])
-                    
                     # len(x_spt_one) = 12
                     # y_spt_one = tensor([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
                     # y_qry_one = tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
                     # print(len(x_spt_one), y_spt_one, x_qry_one, y_qry_one)
-
+                    print('num',num)
                     test_acc,acc,macro_precision,macro_f1,macro_recall = maml.finetunning(x_spt_one, y_spt_one, x_qry_one, y_qry_one, TorF, db_test.denormalization, num)
                     accs_last.append(acc)
                     macro_precisions.append(macro_precision)
                     macro_f1s.append(macro_f1)
                     macro_recalls.append(macro_recall)
                     accs.append(test_acc)
-                    num += 1
+                num += 1
             # [b, update_step+1]
             accs = np.array(accs).mean(axis=0).astype(np.float16)
             accs_last=np.array(accs_last).mean(axis=0).astype(np.float16)
@@ -196,7 +197,7 @@ if __name__ == '__main__':
     # argparser.add_argument('--epoch', type=int, help='epoch number', default=40000)
     # argparser.add_argument('--n_way', type=int, help='n way', default=5)
     # argparser.add_argument('--task_num', type=int, help='meta batch size, namely task num', default=32)
-    argparser.add_argument('--epoch', type=int, help='epoch number', default=100) #我设置的是1000
+    argparser.add_argument('--epoch', type=int, help='epoch number', default=10) #我设置的是1000
     argparser.add_argument('--n_way', type=int, help='n way', default=3) #5
     argparser.add_argument('--k_spt', type=int, help='k shot for support set', default=3)
     argparser.add_argument('--k_spt_test', type=int, help='k shot for support set', default=4)
