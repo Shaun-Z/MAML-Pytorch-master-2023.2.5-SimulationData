@@ -298,7 +298,7 @@ class Meta(nn.Module):
                 correct = torch.eq(pred_q, y_qry).sum().item()  # convert to numpy
                 corrects[k + 1] = corrects[k + 1] + correct
 
-                            # # # # # # # # # SHAP 计算部分的代码 # # # # # # # # # # # # 
+            # # # # # # # # # SHAP 计算部分的代码 # # # # # # # # # # # # 
             
             shap_net = deepcopy(net)
             x_spt_nhwc = x_spt.permute(0, 2, 3, 1)
@@ -333,8 +333,7 @@ class Meta(nn.Module):
             # plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
             # plt.close()
             
-
-            """ SHAP """
+            """ Gradient SHAP """
             print(x_spt_nhwc.shape)
             explainer = shap.GradientExplainer(shap_net, x_spt)
             start_time = time.time()
@@ -353,7 +352,7 @@ class Meta(nn.Module):
             print("output gradient shap fig")
             plt.savefig('EAIFnet/Gshap-'+str(num)+'-'+str(k)+'.png')
             plt.close()
-            # # # # # # # # # SHAP 计算部分的代码 # # # # # # # # # # # # 
+
 
         # # TODO zyg
         # current_file_path = os.path.dirname(os.path.abspath(__file__))
