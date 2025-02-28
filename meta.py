@@ -329,7 +329,7 @@ class Meta(nn.Module):
             """ SHAP """
             explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'IF'], algorithm="permutation")
             start_time = time.time()
-            shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5)
+            shap_values = explainer(x_spt_nhwc, max_evals=400000, batch_size=50)
             end_time = time.time()
             print('calculation time', end_time-start_time)
             values = [val.values for val in shap_values]
