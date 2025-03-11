@@ -53,7 +53,7 @@ def main(args):
     maml = Meta_base(args, config).to(device)
 
     tmp = filter(lambda x: x.requires_grad, maml.parameters()) ## filter
-    num = sum(map(lambda x: np.prod(x.shape), tmp)) #计算数组元素的乘积，得到所有需要训练向量的个数
+    num = sum(map(lambda x: np.prod(x.shape), tmp))  # 计算数组元素的乘积，得到所有需要训练向量的个数
     print(maml)
     print('Total trainable tensors:', num)
 

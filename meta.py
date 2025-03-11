@@ -196,7 +196,7 @@ class Meta(nn.Module):
 
 
     # def finetunning(self, x_spt, y_spt, x_qry, y_qry):
-    def finetunning(self, x_spt, y_spt, x_qry, y_qry, TorF, denorm_func, num):
+    def finetunning(self, x_spt, y_spt, x_qry, y_qry, TorF, denorm_func, num, root):
         """
         :param x_spt:   [setsz, c_, h, w]
         :param y_spt:   [setsz]
@@ -302,56 +302,60 @@ class Meta(nn.Module):
             
             shap_net = deepcopy(net)
             x_spt_nhwc = x_spt.permute(0, 2, 3, 1)
+            print('root',root)
             """ HiSHAP """
-            # def shap_predict(image):
-            #     # return F.softmax(shap_net(torch.tensor(image, device='cuda:0'), self.fast_weights, bn_training=True), dim=1)
-            #     image_nchw = np.moveaxis(image, 3, 1) # (12, 256, 256, 3) --> (12, 3, 256, 256)
-            #     return shap_net(torch.tensor(image_nchw, device='cuda:0'), self.fast_weights, bn_training=True)
-            # # 定义 mask，遮盖输入图像上的局部区域
-            # masker_blur = shap.maskers.Image("blur(128, 128)", x_spt_nhwc[0].shape)
-            # print(x_spt_nhwc.shape)
-            # explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'IF'])
-            # start_time = time.time()
-            # shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5, outputs=shap.Explanation.argsort.flip[:3])
-            # end_time = time.time()
-            # print('calculation time', end_time-start_time)
-            # print(explainer)
-            # shap_values.data = denorm_func(shap_values.data.cpu().numpy())/255.0 # (12, 256, 256, 3)
-            # shap_values.values = [val for val in np.transpose(shap_values.values, (4,0,1,2,3))] # shap值热力图
-            # values = shap_values.values
-            # data = shap_values.data
-            # output_names = shap_values.output_names
-
-            # print(type(values[0]), len(values), values[0].shape, type(data), data.shape)
-            # plt.rcParams['font.size'] = 16
-            # shap.image_plot(    shap_values = values,
-            #                     pixel_values = data,
-            #                     labels = output_names,
-            #                     hspace = 'auto',
-            #                     show = False)
-            # print("output shap fig")
-            # plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
-            # plt.close()
-            
-            """ Gradient SHAP """
+            def shap_predict(image):
+                # return F.softmax(shap_net(torch.tensor(image, device='cuda:0'), self.fast_weights, bn_training=True), dim=1)
+                image_nchw = np.moveaxis(image, 3, 1) # (12, 256, 256, 3) --> (12, 3, 256, 256)
+                return shap_net(torch.tensor(image_nchw, device='cuda:0'), self.fast_weights, bn_training=True)
+            # 定义 mask，遮盖输入图像上的局部区域
+            masker_blur = shap.maskers.Image("blur(128, 128)", x_spt_nhwc[0].shape)
             print(x_spt_nhwc.shape)
-            explainer = shap.GradientExplainer(shap_net, x_spt)
+            explainer = shap.Explainer(shap_predict, masker_blur, output_names=['Normal', 'Disturbance', 'IF'])
             start_time = time.time()
-            shap_values = explainer.shap_values(x_spt)
+            shap_values = explainer(x_spt_nhwc, max_evals=1000, batch_size=5, outputs=shap.Explanation.argsort.flip[:3])
             end_time = time.time()
             print('calculation time', end_time-start_time)
             print(explainer)
-            data = (denorm_func(x_spt_nhwc)/255.0).cpu().detach().numpy() # (12, 256, 256, 3)
-            values = [val for val in np.transpose(shap_values, (4,0,2,3,1))] # shap值热力图 # 3 * (12, 256, 256, 3)
+            shap_values.data = denorm_func(shap_values.data.cpu().numpy())/255.0 # (12, 256, 256, 3)
+            shap_values.values = [val for val in np.transpose(shap_values.values, (4,0,1,2,3))] # shap值热力图
+            values = shap_values.values
+            data = shap_values.data
+            output_names = shap_values.output_names
+
+            print(type(values[0]), len(values), values[0].shape, type(data), data.shape)
             plt.rcParams['font.size'] = 16
             shap.image_plot(    shap_values = values,
                                 pixel_values = data,
-                                # labels = output_names,
+                                labels = output_names,
                                 hspace = 'auto',
                                 show = False)
-            print("output gradient shap fig")
-            plt.savefig('EAIFnet/Gshap-'+str(num)+'-'+str(k)+'.png')
+            print("output shap fig")
+            if root == 'Data6Sim':
+                plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
+            else:
+                plt.savefig('EAIFnetOppt/shap-'+str(num)+'-'+str(k)+'.png')
             plt.close()
+            
+            """ Gradient SHAP """
+            # print(x_spt_nhwc.shape)
+            # explainer = shap.GradientExplainer(shap_net, x_spt)
+            # start_time = time.time()
+            # shap_values = explainer.shap_values(x_spt)
+            # end_time = time.time()
+            # print('calculation time', end_time-start_time)
+            # print(explainer)
+            # data = (denorm_func(x_spt_nhwc)/255.0).cpu().detach().numpy() # (12, 256, 256, 3)
+            # values = [val for val in np.transpose(shap_values, (4,0,2,3,1))] # shap值热力图 # 3 * (12, 256, 256, 3)
+            # plt.rcParams['font.size'] = 16
+            # shap.image_plot(    shap_values = values,
+            #                     pixel_values = data,
+            #                     # labels = output_names,
+            #                     hspace = 'auto',
+            #                     show = False)
+            # print("output gradient shap fig")
+            # plt.savefig('EAIFnet/Gshap-'+str(num)+'-'+str(k)+'.png')
+            # plt.close()
 
 
         # # TODO zyg

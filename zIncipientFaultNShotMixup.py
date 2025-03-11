@@ -569,7 +569,8 @@ class IncipientFaultNShotMixup_taskInitial:
         temp_rms=[]
         j=0
         # k=0
-        type_path=os.listdir(data_dir)
+        type_path=os.listdir(data_dir) 
+        # db_train --> type_path ['AddLoad', 'Groundingfault', 'Normal', 'RemoveLoad', 'Shortcircuitfault'] data_dir TrainData7.19Mixup
         for sub_dir in type_path:
             subtype_path = os.listdir(os.path.join(data_dir,sub_dir))
             for ssubtype_path in subtype_path:
@@ -1264,14 +1265,18 @@ class IncipientFaultNShotMixup_test_adaptationlam:
         temp_dict=dict()
         path_img = dict()
         j=0
-        mixed_img_dir = 'MixedImg'
+        if self.root == 'Data6Sim':
+            print('run EAIFnet')
+            mixed_img_dir = 'MixedImg'
+        else: 
+            print('run EAIFnet oppt')
+            mixed_img_dir = 'MixedImgOppt'
 
-        type_path=os.listdir(data_dir)
-        # type_path = ['Incipient Fault']
+        type_path=os.listdir(data_dir)  # type_path = ['Incipient Fault']  data_dir=Data6Sim
         for sub_dir in type_path:
-            subtype_path = os.listdir(os.path.join(data_dir,sub_dir))
+            subtype_path = os.listdir(os.path.join(data_dir,sub_dir))  # subtype_path =['Data6Sim/Incipient Fault/cable']
             for ssubtype_path in subtype_path:
-                sssubtype_path=os.listdir(os.path.join(data_dir, sub_dir,ssubtype_path))
+                sssubtype_path=os.listdir(os.path.join(data_dir, sub_dir,ssubtype_path))  # sssubtype_path ['cable2', 'Disturbance', 'Normal']
                 for ssssubtype_path in sssubtype_path:
                     sssssubtype_path = os.listdir(os.path.join(data_dir, sub_dir, ssubtype_path,ssssubtype_path))
                     # print(sssssubtype_path)-->['current', 'voltage']
@@ -1281,15 +1286,15 @@ class IncipientFaultNShotMixup_test_adaptationlam:
                     rms_list=[]
                     for ssubdir in sssssubtype_path:
                         docum_path=os.listdir(os.path.join(data_dir, sub_dir,ssubtype_path,ssssubtype_path,ssubdir))
-                        docum_path.sort()
+                        docum_path.sort() # 先png 再xlsx
                         # docum_path = [item for item in os.listdir(os.path.join(data_dir, sub_dir, ssubtype_path, ssssubtype_path, ssubdir)) if item.endswith('.png')]
-                        image_path=docum_path[:self.sample_num ]  # self.sample_num = 14
-                        excel_path=docum_path[self.sample_num :]
+                        image_path=docum_path[:self.sample_num ]  # self.sample_num = 14 全是按序排好的png
+                        excel_path=docum_path[self.sample_num :]  #  全是按序排好的xlsx
                         for k in range(0, len(image_path)):
                             img_load = os.path.join(data_dir, sub_dir,ssubtype_path,ssssubtype_path,ssubdir,image_path[k])
-                            img= Image.open(img_load)
+                            img = Image.open(img_load)
                             img = img.convert('RGB')
-                            img=self.transform(img)
+                            img = self.transform(img)
                             img = img.numpy()  # image has been transformed to numpy here
                             temp_list.append(img)
                             # temp_dict.update({img_load:img})  # for record img's path ad its value
@@ -1298,8 +1303,8 @@ class IncipientFaultNShotMixup_test_adaptationlam:
                         for k in range(0, len(excel_path)):
                             nn = nn + 1
                             excel_load = os.path.join(data_dir, sub_dir,ssubtype_path,ssssubtype_path,ssubdir,excel_path[k])
-                            excel_data=pd.read_excel(excel_load)
-                            excel_data=np.array(excel_data)
+                            excel_data = pd.read_excel(excel_load)
+                            excel_data = np.array(excel_data)
                             data = self.get_rms(excel_data)
                             rms_value=rms_value+data
                             if nn%3==0:
@@ -1309,7 +1314,7 @@ class IncipientFaultNShotMixup_test_adaptationlam:
                                 rms_delta=abs(rms_delta)
                                 rms_list.append(rms_delta)
                                 rms_value = np.zeros(1)
-                    current_rms_list=rms_list[:self.sample_num ]
+                    current_rms_list = rms_list[:self.sample_num ]
                     voltage_rms_list = rms_list[self.sample_num :]
                     current_rms_summm=0
                     voltage_rms_summm = 0

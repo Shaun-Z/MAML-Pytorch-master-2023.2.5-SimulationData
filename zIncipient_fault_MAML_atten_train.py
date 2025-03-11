@@ -79,14 +79,23 @@ def main(args):
 
     print(f"mean:{mean},std:{std}")
     
-    db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim',
+    # db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim',
+    #                                                batchsz=args.task_num_test,
+    #                                                n_way=args.n_way,
+    #                                                k_shot=args.k_spt_test,
+    #                                                k_query=args.k_qry_test,
+    #                                                imgsz=args.imgsz,
+    #                                                chan=args.imgc, mean=mean, std=std,
+    #                                                )
+
+    db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim_oppt',
                                                    batchsz=args.task_num_test,
                                                    n_way=args.n_way,
                                                    k_shot=args.k_spt_test,
                                                    k_query=args.k_qry_test,
                                                    imgsz=args.imgsz,
                                                    chan=args.imgc, mean=mean, std=std,
-                                                   )
+                                                   )                                            
     
     x_spt, y_spt, x_qry, y_qry = db_test.next('test')
     # print(x_spt.shape, x_spt.max(), x_spt.min()) # (1, 12, 3, 256, 256)
@@ -153,7 +162,8 @@ def main(args):
                     # y_qry_one = tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
                     # print(len(x_spt_one), y_spt_one, x_qry_one, y_qry_one)
                     print('num',num)
-                    test_acc,acc,macro_precision,macro_f1,macro_recall = maml.finetunning(x_spt_one, y_spt_one, x_qry_one, y_qry_one, TorF, db_test.denormalization, num)
+                    test_acc,acc,macro_precision,macro_f1,macro_recall = maml.finetunning(x_spt_one, y_spt_one, x_qry_one, y_qry_one, 
+                                                                                          TorF, db_test.denormalization, num, db_test.root)
                     accs_last.append(acc)
                     macro_precisions.append(macro_precision)
                     macro_f1s.append(macro_f1)
