@@ -59,6 +59,50 @@ def main(args):
         # ****************6层卷积层参数设置256*********************
     ]
 
+    # config = [
+    #     ('conv2d', [64, 3, 3, 3, 3, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 3, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 3, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 3, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('flatten', []),
+    #     ('linear', [args.n_way, 256])
+    # ]
+
+    # config = [
+    #     # ****************6层卷积层参数设置256*********************
+    #     ('conv2d', [64, 3, 3, 3, 2, 0]),  # 64种1通道3乘3卷积核 步长2 padding 0
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 2, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 2, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 2, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 3, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('conv2d', [64, 64, 3, 3, 2, 0]),
+    #     ('relu', [True]),
+    #     ('bn', [64]),
+    #     ('flatten', []),
+    #     # ('linear', [16, 256]),
+    #     ('relu', [True]),
+    #     ('linear', [args.n_way, 256])
+    #     # ****************6层卷积层参数设置256*********************
+    # ]
+
 
     device = torch.device('cuda')
     maml = Meta(args, config).to(device)
@@ -79,23 +123,23 @@ def main(args):
 
     print(f"mean:{mean},std:{std}")
     
-    # db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim',
-    #                                                batchsz=args.task_num_test,
-    #                                                n_way=args.n_way,
-    #                                                k_shot=args.k_spt_test,
-    #                                                k_query=args.k_qry_test,
-    #                                                imgsz=args.imgsz,
-    #                                                chan=args.imgc, mean=mean, std=std,
-    #                                                )
-
-    db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim_oppt',
+    db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim',
                                                    batchsz=args.task_num_test,
                                                    n_way=args.n_way,
                                                    k_shot=args.k_spt_test,
                                                    k_query=args.k_qry_test,
                                                    imgsz=args.imgsz,
                                                    chan=args.imgc, mean=mean, std=std,
-                                                   )                                            
+                                                   )
+
+    # db_test = IncipientFaultNShotMixup_test_adaptationlam('Data6Sim_oppt',
+    #                                                batchsz=args.task_num_test,
+    #                                                n_way=args.n_way,
+    #                                                k_shot=args.k_spt_test,
+    #                                                k_query=args.k_qry_test,
+    #                                                imgsz=args.imgsz,
+    #                                                chan=args.imgc, mean=mean, std=std,
+    #                                                )                                            
     
     x_spt, y_spt, x_qry, y_qry = db_test.next('test')
     # print(x_spt.shape, x_spt.max(), x_spt.min()) # (1, 12, 3, 256, 256)

@@ -332,9 +332,11 @@ class Meta(nn.Module):
                                 show = False)
             print("output shap fig")
             if root == 'Data6Sim':
-                plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
+                # plt.savefig('EAIFnet/shap-'+str(num)+'-'+str(k)+'.png')
+                plt.savefig('FedIFnet/shap-'+str(num)+'-'+str(k)+'.png')
             else:
-                plt.savefig('EAIFnetOppt/shap-'+str(num)+'-'+str(k)+'.png')
+                # plt.savefig('EAIFnetOppt/shap-'+str(num)+'-'+str(k)+'.png')
+                plt.savefig('FedIFnet/shap-'+str(num)+'-'+str(k)+'.png')
             plt.close()
             
             """ Gradient SHAP """
